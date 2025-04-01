@@ -20,7 +20,10 @@ except Exception as e:
 
 # URL del servizio
 #url = 'http://localhost:5000/match/1824918'
-url = 'http://localhost:5000/match/1821675/player/20874/events'
+
+event_name = 'Challenge'
+
+url = 'http://localhost:5000/match/1821139/player/408962/event/' + event_name
 
 # Fai la richiesta GET per ottenere i dati
 response = requests.get(url)
@@ -33,11 +36,10 @@ else:
 
 #events = {"events": match_data}
 #events_ls = utils.createEventsDF(events)
-team = 'Modric'
-opponent = 'Leganes'
+name = 'Ugarte'
+opponent = 'Nottingham Forest'
 
-#img_buffer = reports.getPasses(match_data, team, opponent, pitch_color='#FFFFFF')
-img_buffer = reports.getBallRecovery(match_data, team, opponent, pitch_color='#FFFFFF')
+img_buffer = reports.getEventReport(match_data, event_name, name, opponent, pitch_color='#FFFFFF')
 img_buffer.seek(0)
 image_data = utils.compress_image(img_buffer.read(), target_size_kb=976.56, initial_resize_factor=1.0)
 

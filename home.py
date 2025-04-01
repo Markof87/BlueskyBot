@@ -9,6 +9,9 @@ if "partita_selezionata" not in st.session_state:
 if "risultato" not in st.session_state:
     st.session_state.risultato = None
 
+if "pagina" not in st.session_state:
+    st.session_state.pagina = None
+
 # Funzione per lo stile cyberpunk migliorato
 def add_css():
     st.markdown("""
