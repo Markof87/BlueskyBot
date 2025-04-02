@@ -1,7 +1,13 @@
+import requests
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+
+import config
+
+home_url = config.HOME_URL
 
 if "partita_selezionata" not in st.session_state:
     st.session_state.partita_selezionata = None
@@ -106,15 +112,28 @@ for partita in partite:
         st.session_state.partita_selezionata = partita["ID"]
         st.session_state.pagina = "details"
 
+url = home_url + 'tournaments'
+# Fai la richiesta GET per ottenere i dati
+response = requests.get(url)
+
+# Assicurati che la richiesta sia andata a buon fine
+if response.status_code == 200:
+    topTournaments = response.json()
+else:
+    print(f"Errore nella richiesta: {response.status_code}")
+
 # Navbar con scelta del campionato e settimana
 st.sidebar.title("Navigazione")
-campionato = st.sidebar.selectbox("Seleziona il Campionato", ["Serie A", "Premier League", "La Liga", "Bundesliga", "Ligue 1"])
+
+if not topTournaments == None:
+    campionato = st.sidebar.selectbox("Seleziona il Campionato", options=[(tournament["tournament_name"], tournament["id"], tournament["region"]) for tournament in topTournaments['topTournaments']], format_func=lambda x: x[0])
+    selected_campionato_id = campionato[1]
 settimana = st.sidebar.date_input("Seleziona la settimana", pd.to_datetime('today'))
 
 # Sezione centrale con partite
 st.title("Partite di Calcio del giorno")
-st.write(f"**Campionato**: {campionato}")
-st.write(f"**Settimana**: {settimana.strftime('%d %B %Y')}")
+#st.write(f"**Campionato**: {campionato}")
+#st.write(f"**Settimana**: {settimana.strftime('%d %B %Y')}")
 
 # Creazione di dati di esempio per le partite
 partite = pd.DataFrame({
