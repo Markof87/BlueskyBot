@@ -94,7 +94,7 @@ def add_css():
 # Aggiungere il CSS custom per lo stile cyberpunk
 #add_css()
 
-st.title("⚽ Partite della Giornata")
+st.title("⚽ Partite del giorno")
 
 partite = [
     {"Partita": "Milan - Inter", "ID": "milan_inter"},
@@ -112,7 +112,7 @@ campionato = st.sidebar.selectbox("Seleziona il Campionato", ["Serie A", "Premie
 settimana = st.sidebar.date_input("Seleziona la settimana", pd.to_datetime('today'))
 
 # Sezione centrale con partite
-st.title("Partite di Calcio della Giornata")
+st.title("Partite di Calcio del giorno")
 st.write(f"**Campionato**: {campionato}")
 st.write(f"**Settimana**: {settimana.strftime('%d %B %Y')}")
 
