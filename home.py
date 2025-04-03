@@ -102,16 +102,6 @@ def add_css():
 
 st.title("⚽ Partite del giorno")
 
-partite = [
-    {"Partita": "Milan - Inter", "ID": "milan_inter"},
-    {"Partita": "Juventus - Roma", "ID": "juve_roma"},
-]
-
-for partita in partite:
-    if st.button(f"Dettagli {partita['Partita']}"):
-        st.session_state.partita_selezionata = partita["ID"]
-        st.session_state.pagina = "details"
-
 url = home_url + 'tournaments'
 # Fai la richiesta GET per ottenere i dati
 response = requests.get(url)
@@ -121,6 +111,29 @@ if response.status_code == 200:
     topTournaments = response.json()
 else:
     print(f"Errore nella richiesta: {response.status_code}")
+
+url = home_url + 'matchesbydate/20250402'
+response = requests.get(url)
+
+if response.status_code == 200:
+    matches = response.json()
+else:
+    print(f"Errore nella richiesta: {response.status_code}")
+
+partite = []
+for tournament in matches["tournaments"]:
+    if tournament["tournamentId"] in [t["id"] for t in topTournaments["topTournaments"]]:
+        for match in tournament["matches"]:
+            partite.append({
+                "Partita": f"{match['homeTeamName']} - {match['awayTeamName']} {match['homeScore']} - {match['awayScore']}",
+                "ID": match["id"]
+            })
+
+for partita in partite:
+    if st.button(f"Dettagli {partita['Partita']}"):
+        st.session_state.partita_selezionata = partita["ID"]
+        st.session_state.pagina = "details"
+
 
 # Navbar con scelta del campionato e settimana
 st.sidebar.title("Navigazione")

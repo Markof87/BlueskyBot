@@ -21,9 +21,9 @@ except Exception as e:
 # URL del servizio
 #url = 'http://localhost:5000/match/1824918'
 
-event_name = 'Challenge'
+event_name = 'Pass'
 
-url = 'http://localhost:5000/match/1821139/player/408962/event/' + event_name
+url = 'https://markof.pythonanywhere.com/match/1821141/player/331924/event/' + event_name
 
 # Fai la richiesta GET per ottenere i dati
 response = requests.get(url)
