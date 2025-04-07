@@ -14,82 +14,46 @@ import webbrowser
 from io import BytesIO
 from PIL import Image
 
-@st.fragment
-def lazy_expander(
-    title: str,
-    key: str,
-    on_expand,
-    expanded: bool = False,
-    callback_kwargs: dict = None
-):
-    """
-    A 'lazy' expander that only loads/renders content on expand.
-
-    Args:
-        title (str): Title to show beside the arrow.
-        key (str): Unique key for storing expanded state in st.session_state.
-        on_expand (callable): A function that takes a container (and optional kwargs)
-                              to fill with content *only* after expanding.
-        expanded (bool): Initial state (collapsed=False by default).
-        callback_kwargs (dict): Extra kwargs for on_expand() if needed.
-    """
-    if callback_kwargs is None:
-        callback_kwargs = {}
-
-    # Initialize session state in the first run
-    if key not in st.session_state:
-        st.session_state[key] = expanded
-
-    outer_container = st.container(border=True)
-
-    arrows = ["▼", "▲"]  # down, up
-    arrow_keys = ["down", "up"]
-
-    with outer_container:
-        col1, col2 = st.columns([0.9, 0.1])
-        col1.write(f"**{title}**")
-
-        if col2.button(
-            arrows[int(st.session_state[key])],
-            key=f"{key}_arrow_{arrow_keys[int(st.session_state[key])]}"
-        ):
-            # If currently collapsed -> expand and call on_expand
-            if not st.session_state[key]:
-                st.session_state[key] = True
-                on_expand(outer_container, **callback_kwargs)
-
-            # If currently expanded -> collapse (force a rerun)
-            else:
-                st.session_state[key] = False
-                st.rerun()
-
-
 def build_match_panel(container, match_data):
     home_url = config.HOME_URL
-    print(match_data)
+
+    if f"home_formation_{match_data['homeTeamId']}" not in st.session_state:
+        st.session_state[f"home_formation_{match_data['homeTeamId']}"] = None
+    if f"away_formation_{match_data['awayTeamId']}" not in st.session_state:
+        st.session_state[f"away_formation_{match_data['awayTeamId']}"] = None
+    if f"selected_home_player_{match_data['homeTeamId']}" not in st.session_state:
+        st.session_state[f"selected_home_player_{match_data['homeTeamId']}"] = None
+    if f"selected_away_player_{match_data['awayTeamId']}" not in st.session_state:
+        st.session_state[f"selected_away_player_{match_data['awayTeamId']}"] = None
+
     with container:
         colHomeFormation, colHomeReports, colAwayFormation, colAwayReports = st.columns(4)
 
         with colHomeFormation:
-            url_home_formation = home_url + f'match/{match_data["id"]}/team/home'
-            response = requests.get(url_home_formation)
 
-            if response.status_code == 200:
-                home_formation = response.json()
-            else:
-                print(f"Errore nella richiesta: {response.status_code}")
-            #with st.form(key='player_selection_form'):
+            if st.session_state[f"home_formation_{match_data['homeTeamId']}"] is None:
+                url_home_formation = home_url + f'match/{match_data["id"]}/team/home'
+                response = requests.get(url_home_formation)
+
+                if response.status_code == 200:
+                    st.session_state[f"home_formation_{match_data['homeTeamId']}"] = response.json()
+                else:
+                    print(f"Errore nella richiesta: {response.status_code}")
+                #with st.form(key='player_selection_form'):
+            home_formation = st.session_state[f"home_formation_{match_data['homeTeamId']}"]
+            print(home_formation)
             st.write(f"**Formazione {match_data['homeTeamName']}**")
             starters = [player for player in home_formation[:11]]
             bench = [player for player in home_formation[11:] if player['stats'] != {}]
 
-            def update_selected_home_player():
-                st.session_state.selected_player = st.session_state.get(f"home_players_{match_data['homeTeamId']}")
+            def update_selected_home_player(titolari_home):
+                st.session_state[f"selected_home_player_{match_data['homeTeamId']}"] = titolari_home
+                print (st.session_state[f"selected_home_player_{match_data['homeTeamId']}"])
 
-            titolari_home = st.radio("Titolari", [f"{player['name']}" for player in starters], key=f"home_players_{match_data['homeTeamId']}", on_change=update_selected_home_player)
+            titolari_home = st.radio("Titolari", [f"{player['name']}" for player in starters], key=f"home_players_{match_data['homeTeamId']}", on_change=update_selected_home_player, args=(st.session_state[f"selected_home_player_{match_data['homeTeamId']}"],))
                 #panchina = st.radio("Panchina", [f"{player['name']}" for player in bench] if bench else [], key=f"home_players_bench_{match_data['homeTeamId']}")
             st.write(f"Giocatore selezionato tra i titolari: {titolari_home}")
-            #    submit_button = st.form_submit_button(label='Conferma Selezione')
+        #    submit_button = st.form_submit_button(label='Conferma Selezione')
 
 
         with colAwayFormation:
@@ -112,9 +76,9 @@ def build_match_panel(container, match_data):
         
         with colHomeReports:
             st.write(f"**Report {match_data['homeTeamName']}**")
-            if st.button("Passaggi", key=f"home_pass_{match_data['id']}"):
+            if st.button("Passaggi", key=f"home_pass_{match_data['homeTeamId']}"):
                 image_creator(home_url + f'match/{match_data["id"]}/team/{match_data["homeTeamId"]}/event/Pass', 'Pass', match_data['homeTeamName'], match_data['awayTeamName'])
-            if st.button("Contrasti", key=f"home_tackle_{match_data['id']}"):
+            if st.button("Contrasti", key=f"home_tackle_{match_data['homeTeamId']}"):
                 image_creator(home_url + f'match/{match_data["id"]}/team/{match_data["homeTeamId"]}/event/Tackle', 'Tackle', match_data['homeTeamName'], match_data['awayTeamName'])
 
         with colAwayReports:
@@ -331,7 +295,17 @@ st.write(f"**Giornata**: {giornata.strftime('%d %B %Y')}")
 # Mostrare le partite della giornata
 for match_data in matches_data:
 
-    lazy_expander(f"{match_data['match_name']} - {match_data['score']}", f"match_{match_data['id']}", on_expand=build_match_panel, expanded=False, callback_kwargs={'match_data': match_data})
+    with st.container():
+        st.markdown(f"### {match_data['match_name']} - {match_data['score']}")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button(f"Formazione {match_data['homeTeamName']}", key=f"home_formation_{match_data['id']}"):
+                build_match_panel(st.container(), match_data)
+
+        with col2:
+            if st.button(f"Formazione {match_data['awayTeamName']}", key=f"away_formation_{match_data['id']}"):
+                build_match_panel(st.container(), match_data)
 
     #with st.expander(f"{match_data['match_name']} - {match_data['score']}"):
         #st.write(f"**Data**: {partita['Data']}")
