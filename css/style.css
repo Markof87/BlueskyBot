@@ -1,0 +1,37 @@
+body {
+    background-color: #1e1e2f;
+    color: #e3e3e3;
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4 {
+    color: #00d4ff;
+    text-shadow: 0px 0px 8px #00b3cc;
+}
+
+button {
+    background: linear-gradient(135deg, #00b3cc, #00d4ff);
+    color: #1e1e2f;
+    border: 2px solid #00b3cc;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #00d4ff, #00b3cc);
+    border: 2px solid #00d4ff;
+}
+
+@media only screen and (max-width: 600px) {
+    body {
+        font-size: 14px;
+    }
+    button {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+}

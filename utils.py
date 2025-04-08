@@ -1,7 +1,11 @@
+import requests
+
 import warnings
 import pandas as pd
 import numpy as np
 
+import reports
+import webbrowser
 from PIL import Image
 from io import BytesIO
 
@@ -102,6 +106,29 @@ def createEventsDF(data):
 
 
     return events_df
+
+def image_creator(url, event_name, name, opponent):
+
+    response = requests.get(url)
+    # Assicurati che la richiesta sia andata a buon fine
+    if response.status_code == 200:
+        match_data = response.json()
+    else:
+        print(f"Errore nella richiesta: {response.status_code}")
+
+    img_buffer = reports.getEventReport(match_data, event_name, name, opponent, pitch_color='#FFFFFF')
+    img_buffer.seek(0)
+    image_data = compress_image(img_buffer.read(), target_size_kb=976.56, initial_resize_factor=1.0)
+
+    with open('temp_image.png', 'wb') as temp_file:
+        temp_file.write(image_data)
+    webbrowser.open('temp_image.png')
+
+    print("Immagine salvata come debug_image.png per verifica.")
+
+    if not image_data:
+        print("Errore: Il buffer dell'immagine è vuoto.")
+        exit(1)
 
 def compress_image(input_image_bytes, target_size_kb=976.56, initial_resize_factor=1.0):
     """
